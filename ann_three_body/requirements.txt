@@ -1,0 +1,4 @@
+numba
+numpy==1.18.2
+scipy
+matplotlib==3.2.1
