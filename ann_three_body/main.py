@@ -25,7 +25,7 @@ v_init = np.array([[0.01, 0.01, 0],  # Alpha Centauri B
                    [-0.01, 0, 0]],   # Alpha Centauri A
                   dtype="float64")
 
-integrator = physics.integrator.RungeKuttaIntegrator(r_init, v_init, m)
+integrator = physics.integrator.SciPyIvpIntegrator(r_init, v_init, m, method='LSODA')
 
 
 def main():
