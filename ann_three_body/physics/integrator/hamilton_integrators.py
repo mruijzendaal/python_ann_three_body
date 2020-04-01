@@ -1,7 +1,9 @@
-from .system import MechanicalSystem
-from ..constants import *
 import numpy as np
 import numba
+
+from ..constants import *
+from .base import PhysicsIntegrator
+from ..system import MechanicalSystem
 
 
 @numba.jit
@@ -22,7 +24,7 @@ def drdp(dt, r, p, N, m, K1, K2):
 
 
 @numba.jit
-def hamiltonNonSymplectic(r0, p0, t, N, m, K1, K2):
+def hamilton_non_symplectic(r0, p0, t, N, m, K1, K2):
     dt = t[1] - t[0]
     Nt = t.size
     r = np.zeros((Nt, N, 3))
@@ -38,19 +40,22 @@ def hamiltonNonSymplectic(r0, p0, t, N, m, K1, K2):
 #
 #   Hamiltonian equations of motion, integrators
 #
-class HamiltonianIntegrator(MechanicalSystem):
+class HamiltonianIntegrator(PhysicsIntegrator):
     K3: float
     K4: float
 
-    def __init__(self, r_init, v_init, m):
-        super().__init__(r_init, v_init, m)
+    def __init__(self, system: MechanicalSystem):
+        super().__init__(system)
         # Constants for the equation of motion, according to the renormalization
         self.K3 = G * t_nd * m_nd / (r_nd ** 2 * v_nd)
         self.K4 = v_nd * t_nd / r_nd
 
     def integrate(self, N_t):
         t = self.get_timesteps(N_t)
-        r, p = hamiltonNonSymplectic(self.r_init, self.v_init * self.m, t, self.N, self.m, self.K3, self.K4)
+        r, p = hamilton_non_symplectic(self.physics_system.r_init,
+                                       self.physics_system.v_init * self.physics_system.m,
+                                       t,
+                                       self.physics_system.N, self.physics_system.m, self.K3, self.K4)
         # r, p = hamilton1st(self.r_init, self.v_init * self.m, t, self.N, self.m, self.K3, self.K4)
         return r, p / self.m
 
@@ -97,7 +102,7 @@ def drdp_symplectic(c, d, dt, r, p, N, m, K1, K2):
 
 
 # @numba.jit
-def hamiltonSympletic(cd, r0, p0, t, N, m, K1, K2):
+def hamilton_sympletic(cd, r0, p0, t, N, m, K1, K2):
     dt = t[1] - t[0]
     Nt = t.size
     r = np.zeros((Nt, N, 3))
@@ -117,17 +122,20 @@ def hamiltonSympletic(cd, r0, p0, t, N, m, K1, K2):
     return r, p
 
 
-class SymplecticIntegrator(MechanicalSystem):
+class SymplecticIntegrator(PhysicsIntegrator):
     K3: float
     K4: float
 
-    def __init__(self, r_init, v_init, m):
-        super().__init__(r_init, v_init, m)
+    def __init__(self, system: MechanicalSystem):
+        super().__init__(system)
         # Constants for the equation of motion, according to the renormalization
         self.K3 = G * t_nd * m_nd / (r_nd ** 2 * v_nd)
         self.K4 = v_nd * t_nd / r_nd
 
     def integrate(self, N_t):
         t = self.get_timesteps(N_t)
-        r, p = hamiltonSympletic(cd_ruth4, self.r_init, self.v_init * self.m, t, self.N, self.m, self.K3, self.K4)
-        return r, p / self.m
+        r, p = hamilton_sympletic(cd_ruth4, self.physics_system.r_init,
+                                  self.physics_system.v_init * self.physics_system.m,
+                                  t,
+                                  self.physics_system.N, self.physics_system.m, self.K3, self.K4)
+        return r, p / self.physics_system.m

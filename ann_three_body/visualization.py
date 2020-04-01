@@ -75,7 +75,7 @@ def show_trajectory(r, v, N):
     fig.show()
 
 
-def animate_trajectory_2d(r, v, N):
+def animate_trajectory_2d(r, v, N, m):
     r2d = r[:, :, :2]
     v2d = v[:, :, :2]
 
@@ -87,7 +87,7 @@ def animate_trajectory_2d(r, v, N):
     lines = []
     scatters = []
     for i in range(N):
-        line, = ax.plot([], [], lw=1, label=f"Mass {i}")
+        line, = ax.plot([], [], lw=1, label=f"Mass {i} = {m[i, 0]:.3f}")
         lines.append(line)
         scat = ax.scatter([0], [0], color=line.get_color())
         scatters.append(scat)
