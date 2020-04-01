@@ -3,7 +3,7 @@ from . import constants
 
 
 def kinetic(v, m) -> np.ndarray:
-    E_kin = (0.5 * m * v ** 2).sum(axis=(2)) * (constants.m_nd * constants.v_nd**2)**-1
+    E_kin = (0.5 * m * v ** 2).sum(axis=2) * (constants.m_nd * constants.v_nd**2)
     E_kin = E_kin.reshape([E_kin.shape[0], m.size, 1])
     return E_kin
 
@@ -15,8 +15,9 @@ def gravitational(r, m) -> np.ndarray:
         for j, m_j in enumerate(m):
             if i == j:
                 continue
-            E_pot[:, i, 0] += -constants.G * (constants.m_nd**2 / constants.r_nd**2)**-1 *\
-                              m_i * m_j / np.linalg.norm(r[:, i, :] - r[:, j, :], axis=1) ** 2
+            rij = np.linalg.norm(r[:, i, :] - r[:, j, :], axis=1)
+            E_pot[:, i, 0] += - constants.G * m_i * m_j / rij
+    E_pot *= (constants.m_nd**2 / constants.r_nd)
     return E_pot
 
 
