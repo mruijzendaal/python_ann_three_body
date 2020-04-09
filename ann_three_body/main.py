@@ -1,12 +1,13 @@
 import numpy as np
 
-import physics.system
-import physics.integrator
+import matplotlib.pyplot as plt
+import physics
+import storage
 import visualization
 
-# The dimensions of data in this project are as follows:
+# The dimensions of storage in this project are as follows:
 #                       Example: velocity
-# Dimension 0: data.    [v_x, v_y, vz]
+# Dimension 0: storage.    [v_x, v_y, vz]
 # Dimension 1: body nr  [data_of_mass_0, data_1, data_2, ...]
 # Dimension 2: time     [data_t_0, data_t_1, data_t_2, ...]
 

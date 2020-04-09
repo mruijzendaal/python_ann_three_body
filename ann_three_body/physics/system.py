@@ -16,9 +16,9 @@ class MechanicalSystem:
         assert r_init.shape == (self.N, 3)
         assert v_init.shape == (self.N, 3)
 
-        print(f"Defined the following {self.N}-body system:")
-        for i, m_i in enumerate(m.flatten()):
-            print(f"m_{i} = {m_i}")
+        # print(f"Defined the following {self.N}-body system:")
+        # for i, m_i in enumerate(m.flatten()):
+        #     print(f"m_{i} = {m_i}")
 
 
 class EearthSunSystem(MechanicalSystem):
@@ -93,12 +93,33 @@ class AlphaCentauriSystem(MechanicalSystem):
 
 
 class RandomNbodySystem(MechanicalSystem):
-    def __init__(self, N=3):
-        m = np.random.rand(N, 1) + 1  # Masses in [0.9, 1.1]
+    def __init__(self, N=3,
+                 mass_mean=1, mass_dev=0.5,
+                 position_mean=0, position_dev=0.5,
+                 v_mean=0, v_dev=0.5):
+        r, v, m = self.new(N, mass_mean, mass_dev,
+                           position_mean, position_dev,
+                           v_mean, v_dev)
+        super().__init__(r, v, m)
+
+    def new(self, N=3,
+            mass_mean=1.5, mass_dev=0.5,
+            position_mean=0, position_dev=0.5,
+            v_mean=0, v_dev=0.5):
+        m = np.random.rand(N, 1) * (2 * mass_dev) + (mass_mean - mass_dev)
         # m = np.ones((N, 1))
-        r = np.random.rand(N, 3) - 0.5  # Initial positions between [-0.5, 0.5]
+
+        r = np.random.rand(N, 3) * (2 * position_dev) + (position_mean - position_dev)
         r[2, :] = 0.0
 
-        v = np.random.rand(N, 3) - 0.5  # Velocities in [-0.5, 0.5]
+        v = np.random.rand(N, 3) * (2 * v_dev) + (v_mean - v_dev)
         v[2, :] = 0.0
-        super().__init__(r, v, m)
+        return r, v, m
+
+    def set_new(self, N=3,
+                mass_mean=1.5, mass_dev=0.5,
+                position_mean=0, position_dev=0.5,
+                v_mean=0, v_dev=0.5):
+        self.r_init, self.v_init, self.m = self.new(N, mass_mean, mass_dev,
+                                                    position_mean, position_dev,
+                                                    v_mean, v_dev)
