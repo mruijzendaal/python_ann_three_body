@@ -12,21 +12,32 @@ def show_energy(r, v, m):
     E_gravitational = physics.energy.gravitational(r, m).sum(axis=1)
     E_kinetic = physics.energy.kinetic(v, m).sum(axis=1)
 
-    for energy, label in [(E_gravitational, "Gravitational energy"),
-                          (E_kinetic, "Kinetic energy"),
-                          (E_system, "Total energy"),
-                          ]:
+    plot_confs = [
+        (E_gravitational, "Gravitational energy"),
+        (E_kinetic, "Kinetic energy"),
+        (E_system, "Total energy"),
+    ]
+
+    for energy, label in plot_confs:
         plt.plot(energy)
         plt.title(f"{label}")
-        plt.xlabel("Energy [N]")
-        plt.ylabel("Time [-]")
+        plt.ylabel("Energy [N]")
+        plt.xlabel("Time [-]")
         plt.show()
 
         plt.plot((energy - energy[0]) / energy[0])
         plt.title(f"Error in {label}")
-        plt.xlabel("Relative energy error [-]")
-        plt.ylabel("Time [-]")
+        plt.ylabel("Relative energy error [-]")
+        plt.xlabel("Time [-]")
         plt.show()
+
+    plt.title(f"Errors in energies")
+    plt.legend()
+    plt.ylabel("Relative energy error [-]")
+    plt.xlabel("Time [-]")
+    for energy, label in plot_confs:
+        plt.plot((energy - energy[0]) / energy[0], label=label)
+    plt.show()
 
 
 def show_trajectory(r, v, N):
@@ -80,6 +91,8 @@ def animate_trajectory_2d(r, v, N, m):
     v2d = v[:, :, :2]
 
     r = r2d
+    # r = r[:, 1:, :]
+    # N=2
 
     matplotlib.use("TkAgg")
     fig, ax = plt.subplots()
