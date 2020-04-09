@@ -4,7 +4,6 @@ import physics.system
 import physics.integrator
 import visualization
 
-
 # The dimensions of data in this project are as follows:
 #                       Example: velocity
 # Dimension 0: data.    [v_x, v_y, vz]
@@ -23,7 +22,8 @@ problem = physics.system.RandomNbodySystem(N=3)
 # integrator = physics.integrator.OdeIntegrator(r_init, v_init, m)
 # integrator = physics.integrator.SciPyIvpIntegrator(r_init, v_init, m, method='LSODA')
 # integrator = physics.integrator.HamiltonianIntegrator(r_init, v_init, m)
-integrator = physics.integrator.SymplecticIntegrator(problem)
+# integrator = physics.integrator.SymplecticIntegrator(problem)
+integrator = physics.integrator.BrutusIntegrator(problem)
 
 
 def main():

@@ -14,7 +14,7 @@ class PhysicsIntegrator:
 
     @staticmethod
     def get_timespan():
-        return 0., 2.
+        return 0., 1.
 
     def get_timesteps(self, N_t):
         return np.linspace(*self.get_timespan(), N_t)
