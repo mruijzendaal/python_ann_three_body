@@ -194,6 +194,8 @@ def hamilton_sympletic_brutus(cd, r0, p0, tmax, N, m, K1, K2):
 
     t = 0
     i = 0
+
+    # Initial timestep very small compared to timescale
     dt = 1/1000000
     if cd is None:
         raise(ValueError("WTF"))
@@ -216,7 +218,6 @@ def hamilton_sympletic_brutus(cd, r0, p0, tmax, N, m, K1, K2):
             p[i + 1, :, :], r[i + 1, :, :] = p_new, r_new
             i += 1
             t += dt
-    print(i)
     return r[:i, :, :], p[:i, :, :]
 
 
@@ -236,5 +237,6 @@ class BrutusIntegrator(PhysicsIntegrator):
                                          self.physics_system.v_init * self.physics_system.m,
                                          self.get_timespan()[-1],
                                          self.physics_system.N, self.physics_system.m, self.K3, self.K4)
-        print(f"Elapsed time: {time.time()-time_start}s")
+        print(f"Number of Brutus timesteps: {r.shape[0]}")
+        print(f"Elapsed time: {time.time()-time_start:.1f}s")
         return r, p / self.physics_system.m

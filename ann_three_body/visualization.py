@@ -68,7 +68,7 @@ def show_trajectory(r, v, N):
     ax = fig.add_subplot(111)
 
     for i in range(N):
-        c = ["darkblue", "tab:red", "green"][i]
+        c = ["darkblue", "tab:red", "green", "orange", "blue"][i]
         # Plot the orbits
         x = r2d[:, i, 0].flatten()
         y = r2d[:, i, 1].flatten()
