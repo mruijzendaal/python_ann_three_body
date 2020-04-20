@@ -32,11 +32,11 @@ def show_energy(r, v, m):
         plt.show()
 
     plt.title(f"Errors in energies")
-    plt.legend()
     plt.ylabel("Relative energy error [-]")
     plt.xlabel("Time [-]")
     for energy, label in plot_confs:
         plt.plot((energy - energy[0]) / energy[0], label=label)
+    plt.legend()
     plt.show()
 
 

@@ -21,7 +21,7 @@ class MechanicalSystem:
         #     print(f"m_{i} = {m_i}")
 
 
-class EearthSunSystem(MechanicalSystem):
+class EarthSunSystem(MechanicalSystem):
     def __init__(self):
         # Define masses
         m = np.array([1,  # Sun
@@ -107,19 +107,33 @@ class RandomNbodySystem(MechanicalSystem):
         self.v_mean = v_mean
         self.v_dev = v_dev
 
-        r, v, m = self.new()
+        r, v, m = self._new()
         super().__init__(r, v, m)
 
-    def new(self):
+    def _new(self):
         m = np.random.rand(self.N, 1) * (2 * self.mass_dev) + (self.mass_mean - self.mass_dev)
-        # m = np.ones((N, 1))
-
         r = np.random.rand(self.N, 3) * (2 * self.position_dev) + (self.position_mean - self.position_dev)
-        r[2, :] = 0.0
-
         v = np.random.rand(self.N, 3) * (2 * self.v_dev) + (self.v_mean - self.v_dev)
+
+        # Set equal mass
+        m = np.ones((self.N, 1))
+
+        # Set z = 0, v_z = 0
+        r[2, :] = 0.0
         v[2, :] = 0.0
+
+        # Set center of mass at (0, 0, 0)
+        r_cm = (m * r).sum(axis=0) / m.sum()
+        r = r - r_cm
+
+        # Set system momentum to (0, 0, 0)
+        p_cm = (m * v).sum(axis=0)
+        v = v - m / m.sum() * p_cm
+
+        # Check system momentum
+        p_cm = (m * v).sum(axis=0)
+
         return r, v, m
 
     def set_new(self):
-        self.r_init, self.v_init, self.m = self.new()
+        self.r_init, self.v_init, self.m = self._new()
