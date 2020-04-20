@@ -4,17 +4,15 @@ from .. import system
 
 
 class PhysicsIntegrator:
-    physics_system: system.MechanicalSystem
+    def __init__(self):
+        pass
 
-    def __init__(self, physics_system: system.MechanicalSystem):
-        self.physics_system = physics_system
-
-    def integrate(self, N_t):
+    def integrate(self, N_t, system: system.MechanicalSystem):
         raise Exception("Method `integrate` not inherited by subclass.")
 
     @staticmethod
     def get_timespan():
-        return 0., 1.
+        return 0., 0.1
 
     def get_timesteps(self, N_t):
         return np.linspace(*self.get_timespan(), N_t)

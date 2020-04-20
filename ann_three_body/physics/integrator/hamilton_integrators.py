@@ -45,18 +45,18 @@ class HamiltonianIntegrator(PhysicsIntegrator):
     K3: float
     K4: float
 
-    def __init__(self, system: MechanicalSystem):
-        super().__init__(system)
+    def __init__(self):
+        super().__init__()
         # Constants for the equation of motion, according to the renormalization
         self.K3 = G * t_nd * m_nd / (r_nd ** 2 * v_nd)
         self.K4 = v_nd * t_nd / r_nd
 
-    def integrate(self, N_t):
+    def integrate(self, N_t, system: MechanicalSystem):
         t = self.get_timesteps(N_t)
-        r, p = hamilton_non_symplectic(self.physics_system.r_init,
-                                       self.physics_system.v_init * self.physics_system.m,
+        r, p = hamilton_non_symplectic(system.r_init,
+                                       system.v_init * system.m,
                                        t,
-                                       self.physics_system.N, self.physics_system.m, self.K3, self.K4)
+                                       system.N, system.m, self.K3, self.K4)
         # r, p = hamilton1st(self.r_init, self.v_init * self.m, t, self.N, self.m, self.K3, self.K4)
         return r, p / self.m
 
@@ -127,19 +127,19 @@ class SymplecticIntegrator(PhysicsIntegrator):
     K3: float
     K4: float
 
-    def __init__(self, system: MechanicalSystem):
-        super().__init__(system)
+    def __init__(self):
+        super().__init__()
         # Constants for the equation of motion, according to the renormalization
         self.K3 = G * t_nd * m_nd / (r_nd ** 2 * v_nd)
         self.K4 = v_nd * t_nd / r_nd
 
-    def integrate(self, N_t):
+    def integrate(self, N_t, system: MechanicalSystem):
         t = self.get_timesteps(N_t)
-        r, p = hamilton_sympletic(cd_ruth4, self.physics_system.r_init,
-                                  self.physics_system.v_init * self.physics_system.m,
+        r, p = hamilton_sympletic(cd_ruth4, system.r_init,
+                                  system.v_init * system.m,
                                   t,
-                                  self.physics_system.N, self.physics_system.m, self.K3, self.K4)
-        return r, p / self.physics_system.m
+                                  system.N, system.m, self.K3, self.K4)
+        return r, p / system.m
 
 
 @numba.jit
@@ -165,13 +165,14 @@ def dpdr_brutus(c, d, dt, r, p, N, m, K1, K2):
             dp[i, :] = -K1 * m[i] * (m[~mask] * 2 * rij / rij_len ** 3).sum(axis=0)
         p_new += (di * dt) * dp
 
-    return p_new-p, r_new-r
+    return p_new - p, r_new - r
+
 
 @numba.jit
 def brutus_timestep(N, m, r, p, dr, dp):
-    eta = 1/100
+    eta = 1 / 100
 
-    a = dp/m
+    a = dp / m
 
     dt = np.zeros(N)
     for i in range(N):
@@ -184,21 +185,22 @@ def brutus_timestep(N, m, r, p, dr, dp):
     return dt
 
 
-@numba.jit
+@numba.jit(nopython=True, cache=True)
 def hamilton_sympletic_brutus(cd, r0, p0, tmax, N, m, K1, K2):
     N_resize = 1000
     a_resize = np.zeros((N_resize, N, 3), dtype=np.float64)
     r = np.zeros((N_resize, N, 3), dtype=np.float64)
     p = np.zeros((N_resize, N, 3), dtype=np.float64)
+    t = np.zeros(N_resize, dtype=np.float64)
     r[0, :, :], p[0, :, :] = r0, p0
 
-    t = 0
+    t_i = 0
     i = 0
 
     # Initial timestep very small compared to timescale
-    dt = 1/1000000
+    dt = 1 / 1000000
     if cd is None:
-        raise(ValueError("WTF"))
+        raise (ValueError("WTF"))
         # while t < tmax:
         #     p_i, r_i = p[i, :, :], r[i, :, :]
         #     dp, dr = drdp(dt, r_i, p_i, N, m, K1, K2)
@@ -207,36 +209,38 @@ def hamilton_sympletic_brutus(cd, r0, p0, tmax, N, m, K1, K2):
     else:
         c, d = cd[0, :], cd[1, :]
 
-        while t < tmax:
-            if i+1 == r.shape[0]:
+        while t_i < tmax:
+            if i + 1 == r.shape[0]:
                 r = np.concatenate((r, a_resize.copy()))
                 p = np.concatenate((p, a_resize.copy()))
+                t = np.concatenate((t, np.zeros(N_resize)))
             p_i, r_i = p[i, :, :], r[i, :, :]
             p_new, r_new = dpdr_symplectic(c, d, dt, r_i, p_i, N, m, K1, K2)
-            dt = brutus_timestep(N, m, r_i, p_i, r_new/dt, p_new/dt)
-            dt = min(dt, tmax - t)
+            dt = brutus_timestep(N, m, r_i, p_i, r_new / dt, p_new / dt)
+            dt = min(dt, tmax - t_i)
             p[i + 1, :, :], r[i + 1, :, :] = p_new, r_new
+            t_i += dt
+            t[i+1] = t_i
             i += 1
-            t += dt
-    return r[:i, :, :], p[:i, :, :]
+    return r[:i, :, :], p[:i, :, :], t[:i]
 
 
 class BrutusIntegrator(PhysicsIntegrator):
     K3: float
     K4: float
 
-    def __init__(self, system: MechanicalSystem):
-        super().__init__(system)
+    def __init__(self):
+        super().__init__()
         # Constants for the equation of motion, according to the renormalization
         self.K3 = G * t_nd * m_nd / (r_nd ** 2 * v_nd)
         self.K4 = v_nd * t_nd / r_nd
 
-    def integrate(self, N_t):
+    def integrate(self, N_t, system: MechanicalSystem):
         time_start = time.time()
-        r, p = hamilton_sympletic_brutus(cd_ruth4, self.physics_system.r_init,
-                                         self.physics_system.v_init * self.physics_system.m,
-                                         self.get_timespan()[-1],
-                                         self.physics_system.N, self.physics_system.m, self.K3, self.K4)
+        r, p, t = hamilton_sympletic_brutus(cd_ruth4, system.r_init,
+                                            system.v_init * system.m,
+                                            self.get_timespan()[-1],
+                                            system.N, system.m, self.K3, self.K4)
         print(f"Number of Brutus timesteps: {r.shape[0]}")
-        print(f"Elapsed time: {time.time()-time_start:.1f}s")
-        return r, p / self.physics_system.m
+        print(f"Elapsed time: {time.time() - time_start:.1f}s")
+        return r, p / system.m, t

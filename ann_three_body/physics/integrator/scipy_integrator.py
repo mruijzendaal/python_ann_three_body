@@ -50,45 +50,46 @@ class NewtonianIntegrator(PhysicsIntegrator):
     K1: float
     K2: float
 
-    def __init__(self, system: MechanicalSystem):
-        super().__init__(system)
+    def __init__(self):
+        super().__init__()
         # Constants for the equation of motion, according to the renormalization
         self.K1 = G * t_nd * m_nd / (r_nd ** 2 * v_nd)
         self.K2 = v_nd * t_nd / r_nd
 
-    def n_body_equations(self, state, t):
-        return newtonian_n_body_equations(t, state, self.physics_system.N, self.physics_system.m, self.K1, self.K2)
+    def n_body_equations(self, state, t, system: MechanicalSystem):
+        return newtonian_n_body_equations(t, state, system.N, system.m, self.K1, self.K2)
 
 
 class OdeIntegrator(NewtonianIntegrator):
-    def __init__(self, system: MechanicalSystem):
-        super().__init__(system)
+    def __init__(self):
+        super().__init__()
 
-    def integrate(self, N_T):
-        init_params = np.array([self.physics_system.r_init, self.physics_system.v_init])  # create array of initial params
+    def integrate(self, N_T, system: MechanicalSystem):
+        init_params = np.array([system.r_init, system.v_init])  # create array of initial params
         init_params = init_params.flatten()  # flatten array to make it 1D
 
+        t = self.get_timesteps(N_T)
         # Run the ODE solver
         solution = scipy.integrate.odeint(self.n_body_equations,
                                           init_params,
-                                          self.get_timesteps(N_T))
+                                          t)
 
-        solution = solution.reshape([N_T, 2 * self.physics_system.N, 3])
-        r = solution[:, :self.physics_system.N, :]
-        v = solution[:, self.physics_system.N:, :]
+        solution = solution.reshape([N_T, 2 * system.N, 3])
+        r = solution[:, :system.N, :]
+        v = solution[:, system.N:, :]
         r2d = r[:, :, :2]
         v2d = v[:, :, :2]
 
-        return r, v
+        return r, v, t
 
 
 class SciPyIvpIntegrator(NewtonianIntegrator):
-    def __init__(self, system: MechanicalSystem, method='LSODA'):
-        super().__init__(system)
+    def __init__(self, method='LSODA'):
+        super().__init__()
         self.method = method
 
-    def integrate(self, N_T):
-        init_params = np.array([self.physics_system.r_init, self.physics_system.v_init])  # create array of initial params
+    def integrate(self, N_T, system: MechanicalSystem):
+        init_params = np.array([system.r_init, system.v_init])  # create array of initial params
         init_params = init_params.flatten()  # flatten array to make it 1D
 
         timespan = self.get_timespan()
@@ -102,10 +103,10 @@ class SciPyIvpIntegrator(NewtonianIntegrator):
                                              method=self.method,
                                              dense_output=True)
         N_T = solution.t.size
-        solution = solution.y.T.reshape([N_T, 2 * self.physics_system.N, 3])
+        solution = solution.y.T.reshape([N_T, 2 * system.N, 3])
         r = solution[:, :3, :]
         v = solution[:, 3:6, :]
         r2d = r[:, :, :2]
         v2d = v[:, :, :2]
 
-        return r, v
+        return r, v, time
