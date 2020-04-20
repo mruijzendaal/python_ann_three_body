@@ -97,29 +97,29 @@ class RandomNbodySystem(MechanicalSystem):
                  mass_mean=1, mass_dev=0.5,
                  position_mean=0, position_dev=0.5,
                  v_mean=0, v_dev=0.5):
-        r, v, m = self.new(N, mass_mean, mass_dev,
-                           position_mean, position_dev,
-                           v_mean, v_dev)
+        self.N = N
+        self.mass_mean = mass_mean
+        self.mass_dev = mass_dev
+
+        self.position_mean = position_mean
+        self.position_dev = position_dev
+
+        self.v_mean = v_mean
+        self.v_dev = v_dev
+
+        r, v, m = self.new()
         super().__init__(r, v, m)
 
-    def new(self, N=3,
-            mass_mean=1.5, mass_dev=0.5,
-            position_mean=0, position_dev=0.5,
-            v_mean=0, v_dev=0.5):
-        m = np.random.rand(N, 1) * (2 * mass_dev) + (mass_mean - mass_dev)
+    def new(self):
+        m = np.random.rand(self.N, 1) * (2 * self.mass_dev) + (self.mass_mean - self.mass_dev)
         # m = np.ones((N, 1))
 
-        r = np.random.rand(N, 3) * (2 * position_dev) + (position_mean - position_dev)
+        r = np.random.rand(self.N, 3) * (2 * self.position_dev) + (self.position_mean - self.position_dev)
         r[2, :] = 0.0
 
-        v = np.random.rand(N, 3) * (2 * v_dev) + (v_mean - v_dev)
+        v = np.random.rand(self.N, 3) * (2 * self.v_dev) + (self.v_mean - self.v_dev)
         v[2, :] = 0.0
         return r, v, m
 
-    def set_new(self, N=3,
-                mass_mean=1.5, mass_dev=0.5,
-                position_mean=0, position_dev=0.5,
-                v_mean=0, v_dev=0.5):
-        self.r_init, self.v_init, self.m = self.new(N, mass_mean, mass_dev,
-                                                    position_mean, position_dev,
-                                                    v_mean, v_dev)
+    def set_new(self):
+        self.r_init, self.v_init, self.m = self.new()
