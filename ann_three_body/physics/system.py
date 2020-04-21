@@ -1,4 +1,5 @@
 import numpy as np
+import typing
 
 
 class MechanicalSystem:
@@ -92,12 +93,51 @@ class AlphaCentauriSystem(MechanicalSystem):
         super().__init__(r_init, v_init, m)
 
 
-class RandomNbodySystem(MechanicalSystem):
+class RandomGeneratorSystem(MechanicalSystem):
+    def __init__(self, N=3):
+        self.N = N
+
+        r, v, m = self._new()
+        super().__init__(r, v, m)
+
+    def _new(self) -> typing.Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        pass
+
+    def set_new(self):
+        self.r_init, self.v_init, self.m = self._new()
+
+
+class BreenSystem(RandomGeneratorSystem):
+    """
+    This system describes a randomly generated system according to
+    Newton vs the machine: solving the chaotic three-body problem using deep neural networks, Breen (2019)
+
+    It comes down to the following:
+    3 particles with equal mass, all located on a circle with radius 1 at origin (0, 0)
+    """
+
+    def _new(self):
+        m = np.ones((self.N, 1)) * 1.
+        r = np.zeros((self.N, 3))
+        v = np.zeros((self.N, 3))
+
+        # The first particle is always located at (1, 0)
+        r[0, :] = [1, 0, 0]
+        theta = np.random.rand(2) * 2 * np.pi
+        r[1:, 0] = np.cos(theta)
+        r[1:, 1] = np.sin(theta)
+
+        # r_cm = ((m * r)[:2].sum(axis=0, keepdims=True) / m[:2].sum())
+        # r[2, :] = -r_cm
+
+        return r, v, m
+
+
+class RandomNbodySystem(RandomGeneratorSystem):
     def __init__(self, N=3,
                  mass_mean=1, mass_dev=0.5,
                  position_mean=0, position_dev=0.5,
                  v_mean=0, v_dev=0.5):
-        self.N = N
         self.mass_mean = mass_mean
         self.mass_dev = mass_dev
 
@@ -106,9 +146,7 @@ class RandomNbodySystem(MechanicalSystem):
 
         self.v_mean = v_mean
         self.v_dev = v_dev
-
-        r, v, m = self._new()
-        super().__init__(r, v, m)
+        super().__init__(N)
 
     def _new(self):
         m = np.random.rand(self.N, 1) * (2 * self.mass_dev) + (self.mass_mean - self.mass_dev)
@@ -127,10 +165,4 @@ class RandomNbodySystem(MechanicalSystem):
         p_cm = (m * v).sum(axis=0, keepdims=True)
         v = v - m / m.sum() * p_cm
 
-        # Check system momentum
-        p_cm = (m * v).sum(axis=0, keepdims=True)
-
         return r, v, m
-
-    def set_new(self):
-        self.r_init, self.v_init, self.m = self._new()

@@ -19,7 +19,8 @@ import uuid
 # problem = physics.system.AlphaCentauriSystem()
 # problem = physics.system.EearthSunSystem()
 # problem = physics.system.EearthSunMoonSystem()
-problem = physics.system.RandomNbodySystem(N=3, mass_dev=0., mass_mean=1.)
+# problem = physics.system.RandomNbodySystem(N=3, mass_dev=0., mass_mean=1.)
+problem = physics.system.BreenSystem(N=3)
 
 # Adjust to compare different integrators
 
@@ -83,45 +84,48 @@ def resume_fitting(model: learning.BaseModel, datasets, N=3):
 
 
 def main():
-    integrator.T = 0.05
+    integrator.T = 2
     # Create the dataset for training the model with
 
-    dataset_folder = f"output/equal_mass_t{integrator.T}_rcm0_pcm0"
+    # dataset_folder = f"output/equal_mass_t{integrator.T}_rcm0_pcm0"
+    dataset_folder = f"output/breen_t{integrator.T}_rcm0_pcm0"
 
     # create_data_set(problem, num=100000000, output_folder=dataset_folder)
 
     # Train a model
-    sets = storage.load_sets_from_folder(dataset_folder)
+    # sets = storage.load_sets_from_folder(dataset_folder)
 
-    layers = 10
-    nodes = 128
-    model_folder = f"output/2D{layers}Layers{nodes}Nodes{integrator.T}Timestep"
-
-    if not learning.TwoDimensionalModel.exists(model_folder):
-        model = learning.TwoDimensionalModel.new(N=3,
-                                                 num_layers_hidden=layers, num_nodes=nodes,
-                                                 storage_folder=model_folder)
-    else:
-        model = learning.TwoDimensionalModel.load(path=model_folder)
-
-    resume_fitting(model, sets)
-
-    # Execute Newton vs The Machine: See who performs better
-    r_ml, v_ml, r, v = newton_vs_the_machine(problem, integrator,
-                                             model,
-                                             num_periods=10, set_timespan=integrator.T)
+    # layers = 10
+    # nodes = 128
+    # model_folder = f"output/2D{layers}Layers{nodes}Nodes{integrator.T}Timestep"
+    #
+    # if not learning.TwoDimensionalModel.exists(model_folder):
+    #     model = learning.TwoDimensionalModel.new(N=3,
+    #                                              num_layers_hidden=layers, num_nodes=nodes,
+    #                                              storage_folder=model_folder)
+    # else:
+    #     model = learning.TwoDimensionalModel.load(path=model_folder)
+    #
+    # resume_fitting(model, sets)
+    #
+    # # Execute Newton vs The Machine: See who performs better
+    # r_ml, v_ml, r, v = newton_vs_the_machine(problem, integrator,
+    #                                          model,
+    #                                          num_periods=10, set_timespan=integrator.T)
 
     # Integrate a single problem
-    # r, v, t = integrator.integrate(10_000, problem)
-    # m = problem.m
-    # N = problem.N
+    r, v, t = integrator.integrate(10_000, problem)
+    m = problem.m
+    N = problem.N
+
+    physics.analytics.assess(problem.m, problem.r_init, problem.v_init, r[-1], v[-1])
 
     # Visualisation of results
-    vis = visualization.show_trajectory(r, v, problem.N, show=False)
-    visualization.show_trajectory(r_ml, v_ml, problem.N, *vis,
-                                  show=True, alpha=0.45, linestyle='--')
+    # vis = visualization.show_trajectory(r, v, problem.N, show=False)
+    # visualization.show_trajectory(r_ml, v_ml, problem.N, *vis,
+    #                               show=True, alpha=0.45, linestyle='--')
     # visualization.show_energy(r, v, m)
-    # visualization.animate_trajectory_2d(r, v, N, m)
+    visualization.animate_trajectory_2d(r, v, N, m)
 
 
 if __name__ == "__main__":

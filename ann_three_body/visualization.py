@@ -126,7 +126,7 @@ def animate_trajectory_2d(r, v, N, m):
 
     N_frames = r.shape[0]
     fps = 50
-    T = 10
+    T = 3
     multiplier = N_frames / (fps * T)
 
     # animation function.  This is called sequentially
