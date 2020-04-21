@@ -40,12 +40,9 @@ def show_energy(r, v, m):
     plt.show()
 
 
-def show_trajectory(r, v, N):
+def show_trajectory(r, v, N, fig=None, ax=None, show=True, alpha=1., linestyle='-'):
     r2d = r[:, :, :2]
     v2d = v[:, :, :2]
-
-    # Create figure
-    fig = plt.figure(figsize=(15, 15))
 
     #
     #   Plot 3D
@@ -60,12 +57,16 @@ def show_trajectory(r, v, N):
     # ax.scatter(r1_sol[-1, 0], r1_sol[-1, 1], r1_sol[-1, 2], color="darkblue", marker="o", s=100, label="Alpha Centauri A")
     # ax.scatter(r2_sol[-1, 0], r2_sol[-1, 1], r2_sol[-1, 2], color="tab:red", marker="o", s=100, label="Alpha Centauri B")
 
-    #
-    #   Plot 2D
-    #
-    # Plot the orbits
-    # Create 3D axes
-    ax = fig.add_subplot(111)
+    if fig is None or ax is None:
+        # Create figure
+        fig = plt.figure(figsize=(15, 15))
+
+        #
+        #   Plot 2D
+        #
+        # Plot the orbits
+        # Create 3D axes
+        ax = fig.add_subplot(111)
 
     for i in range(N):
         c = ["darkblue", "tab:red", "green", "orange", "blue"][i]
@@ -73,9 +74,9 @@ def show_trajectory(r, v, N):
         x = r2d[:, i, 0].flatten()
         y = r2d[:, i, 1].flatten()
 
-        ax.plot(x, y, color=c)
+        ax.plot(x, y, color=c, alpha=alpha, linestyle=linestyle)
         # Plot the final positions of the stars
-        ax.scatter(x[-1], y[-1], color=c, marker="o", s=100, label="Alpha Centauri A")
+        ax.scatter(x[-1], y[-1], color=c, marker="o", s=100, label=f"Mass {i}", alpha=alpha)
 
     # Add a few more bells and whistles
     ax.set_xlabel("x-coordinate", fontsize=14)
@@ -83,7 +84,10 @@ def show_trajectory(r, v, N):
     ax.set_title("Visualization of orbits of stars in a two-body system\n", fontsize=14)
     ax.legend(loc="upper left", fontsize=14)
 
-    fig.show()
+    if show:
+        fig.show()
+        plt.show()
+    return fig, ax
 
 
 def animate_trajectory_2d(r, v, N, m):
