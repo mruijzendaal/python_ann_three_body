@@ -4,8 +4,8 @@ from . import constants
 
 
 def kinetic(v, m) -> np.ndarray:
-    E_kin = (0.5 * m * v ** 2).sum(axis=2) * (constants.m_nd * constants.v_nd**2)
-    E_kin = E_kin.reshape([E_kin.shape[0], m.size, 1])
+    E_kin = (0.5 * m * v ** 2).sum(axis=-1, keepdims=True) * (constants.m_nd * constants.v_nd**2)
+    # E_kin = E_kin.reshape([E_kin.shape[0], m.size, 1])
     return E_kin
 
 
@@ -28,3 +28,9 @@ def total(r, v, m) -> np.ndarray:
 
 def system_total(r, v, m) -> np.ndarray:
     return total(r, v, m).sum(axis=1)
+
+
+def conservation(m, r_1, v_1, r_2, v_2):
+    E_2 = system_total(r_2, v_2, m)
+    E_1 = system_total(r_1, v_1, m)
+    return (E_2 - E_1)/E_1

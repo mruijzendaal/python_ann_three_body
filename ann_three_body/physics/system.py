@@ -115,23 +115,20 @@ class RandomNbodySystem(MechanicalSystem):
         r = np.random.rand(self.N, 3) * (2 * self.position_dev) + (self.position_mean - self.position_dev)
         v = np.random.rand(self.N, 3) * (2 * self.v_dev) + (self.v_mean - self.v_dev)
 
-        # Set equal mass
-        m = np.ones((self.N, 1))
-
         # Set z = 0, v_z = 0
-        r[2, :] = 0.0
-        v[2, :] = 0.0
+        r[:, 2] = 0.0
+        v[:, 2] = 0.0
 
         # Set center of mass at (0, 0, 0)
-        r_cm = (m * r).sum(axis=0) / m.sum()
+        r_cm = ((m * r).sum(axis=0, keepdims=True) / m.sum())
         r = r - r_cm
 
         # Set system momentum to (0, 0, 0)
-        p_cm = (m * v).sum(axis=0)
+        p_cm = (m * v).sum(axis=0, keepdims=True)
         v = v - m / m.sum() * p_cm
 
         # Check system momentum
-        p_cm = (m * v).sum(axis=0)
+        p_cm = (m * v).sum(axis=0, keepdims=True)
 
         return r, v, m
 
