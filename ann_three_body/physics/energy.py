@@ -20,7 +20,7 @@ def gravitational(r, m) -> np.ndarray:
         for j, m_j in enumerate(m):
             if i == j:
                 continue
-            rij = np.linalg.norm(r[..., i, :] - r[..., j, :], axis=-1)
+            rij = np.linalg.norm(r[..., i, :] - r[..., j, :], axis=-1, keepdims=True)
             E_pot[..., i, :] += - constants.G * m_i * m_j / rij
     E_pot *= (constants.m_nd**2 / constants.r_nd)
     return E_pot
