@@ -2,9 +2,6 @@ from .base import *
 
 
 class TwoDimensionalModel(BaseModel):
-    @staticmethod
-    def _get_space_mask(N):
-        return [*[True]*N, *[True]*N, *[False]*N]
 
     def format_input(self, N, m, r_init, v_init):
         # Mask out masses, rz and vz

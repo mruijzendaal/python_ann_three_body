@@ -33,12 +33,16 @@ integrator = physics.integrator.BrutusIntegrator()
 
 def run_and_save_simulation(i, output_folder):
     print(f"\n### Executing simulation {i}")
-    problem = physics.system.RandomNbodySystem(N=3, mass_dev=0., mass_mean=1.)
+    # Make a new random seed, or multiprocessing will cause every seperate process to create the same random numbers
+    np.random.seed()
+    # problem = physics.system.RandomNbodySystem(N=3, mass_dev=0., mass_mean=1.)
+    problem = physics.system.BreenSystem(N=3)
 
     m = problem.m
 
     r, v, t = integrator.integrate(10_000, problem)
 
+    # physics.analytics.asses()
     energy = physics.energy.system_total(r, v, m)
     relative_error = physics.analytics.get_relative_error(energy).max()
     print(f"Max relative error: {relative_error:.1E}")
@@ -48,16 +52,17 @@ def run_and_save_simulation(i, output_folder):
                              problem.r_init,
                              problem.v_init,
                              t,
-                             r[-1], v[-1],
+                             # r[-1], v[-1],
+                             r, v,
                              filename=f"{uuid.uuid1()}",
                              folder=output_folder)
+    print(f"Saved solution")
 
 
-def create_data_set(problem: physics.system.RandomNbodySystem,
-                    num=1000, output_folder="output2"):
+def create_data_set(num=1000, output_folder="output2"):
     # run = lambda i: run_and_save_simulation(problem, integrator, output_folder, i)
 
-    with multiprocessing.Pool() as pool:
+    with multiprocessing.Pool(  ) as pool:
         pool.starmap(run_and_save_simulation,
                      zip(range(num), repeat(output_folder)))
 
@@ -77,12 +82,6 @@ def newton_vs_the_machine(problem,
     return r_ml, v_ml, r, v
 
 
-def resume_fitting(model: learning.BaseModel, datasets, N=3):
-    if model is None:
-        model = learning.BaseModel.new(N)
-    model.fit_model(datasets)
-
-
 def main():
     integrator.T = 2
     # Create the dataset for training the model with
@@ -90,15 +89,15 @@ def main():
     # dataset_folder = f"output/equal_mass_t{integrator.T}_rcm0_pcm0"
     dataset_folder = f"output/breen_t{integrator.T}_rcm0_pcm0"
 
-    # create_data_set(problem, num=100000000, output_folder=dataset_folder)
+    create_data_set(num=100000, output_folder=dataset_folder)
 
     # Train a model
     # sets = storage.load_sets_from_folder(dataset_folder)
 
-    # layers = 10
-    # nodes = 128
-    # model_folder = f"output/2D{layers}Layers{nodes}Nodes{integrator.T}Timestep"
-    #
+    layers = 10
+    nodes = 128
+    model_folder = f"output/2D{layers}Layers{nodes}Nodes{integrator.T}Timestep"
+
     # if not learning.TwoDimensionalModel.exists(model_folder):
     #     model = learning.TwoDimensionalModel.new(N=3,
     #                                              num_layers_hidden=layers, num_nodes=nodes,
@@ -107,6 +106,7 @@ def main():
     #     model = learning.TwoDimensionalModel.load(path=model_folder)
     #
     # resume_fitting(model, sets)
+    # model.fit_model(sets)
     #
     # # Execute Newton vs The Machine: See who performs better
     # r_ml, v_ml, r, v = newton_vs_the_machine(problem, integrator,

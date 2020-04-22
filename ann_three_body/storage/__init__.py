@@ -2,6 +2,7 @@ import pickle
 import os
 import physics
 
+
 def save_object(obj, filename, folder="output"):
     if not os.path.isdir(folder):
         os.mkdir(folder)
