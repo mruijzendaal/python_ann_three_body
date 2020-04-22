@@ -133,7 +133,7 @@ class BaseModel(object):
         # Distribute data into numpy array
         for i, set in enumerate(sets):
             [m, r_init, v_init, T_max, r_out, v_out] = set
-            input[i, :] = self.format_input(N, m, r_init, v_init)
+            input[i, :] = self.format_input(N, T_max, m, r_init, v_init)
             output[i, :] = self.format_output(N, r_out, v_out)
         return input, output
 
@@ -146,7 +146,7 @@ class BaseModel(object):
         return 6 * N
 
     @staticmethod
-    def format_input(N, m, r_init, v_init):
+    def format_input(N, t, m, r_init, v_init):
         input = np.zeros((7 * N))
         input[0:N] = m.flatten()
         input[N:4 * N] = r_init.flatten()
@@ -183,12 +183,13 @@ class BaseModel(object):
 
     def predict_timesteps(self,
                           N, m, r_init, v_init,
+                          t,
                           num_timesteps=10):
         output = np.zeros((num_timesteps + 1, self._get_output_dimension(N)))
         output[0, :] = self.format_output(N, r_init, v_init)
 
         for i in range(num_timesteps):
             r, v = self.get_data_from_output(output[i, :], N=N)
-            input = self.format_input(N, m, r, v)
+            input = self.format_input(N, t, m, r, v)
             output[i + 1, :] = self._model.predict(input[None, :])
         return output
