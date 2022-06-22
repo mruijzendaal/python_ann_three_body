@@ -1,5 +1,5 @@
 numba
-numpy==1.18.2
+numpy==1.22.0
 scipy
 matplotlib==3.2.1
 tensorflow==2.1.0
